@@ -1,0 +1,29 @@
+{
+  "id": "pap_layout",
+  "name": "pap layout",
+  "background": "#000000",
+  "layoutTemplateSlots": [
+    {
+      "id": "one",
+      "x": 0,
+      "y": 0,
+      "zOrder": 1,
+      "width": 0.5,
+      "height": 1,
+      "mirrorVertically": false,
+      "mirrorHorizontally": false,
+      "gravity": "CENTER_MIDDLE"
+    },
+    {
+      "id": "two",
+      "x": 0.5,
+      "y": 0,
+      "zOrder": 1,
+      "width": 0.5,
+      "height": 1,
+      "mirrorVertically": false,
+      "mirrorHorizontally": false,
+      "gravity": "CENTER_MIDDLE"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "full_layout",
+  "name": "full layout",
+  "background": "#000000",
+  "layoutTemplateSlots": [
+    {
+      "id": "one",
+      "x": 0,
+      "y": 0,
+      "zOrder": 1,
+      "width": 1,
+      "height": 1,
+      "mirrorVertically": false,
+      "mirrorHorizontally": false,
+      "gravity": "CENTER_MIDDLE"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "pip_layout",
+  "name": "pip layout",
+  "background": "#000000",
+  "layoutTemplateSlots": [
+    {
+      "id": "one",
+      "x": 0,
+      "y": 0,
+      "zOrder": 1,
+      "width": 1,
+      "height": 1,
+      "mirrorVertically": false,
+      "mirrorHorizontally": false,
+      "gravity": "CENTER_MIDDLE"
+    },
+    {
+      "id": "two",
+      "x": 0.75,
+      "y": 0.75,
+      "zOrder": 2,
+      "width": 0.25,
+      "height": 0.25,
+      "mirrorVertically": false,
+      "mirrorHorizontally": false,
+      "gravity": "CENTER_MIDDLE"
+    }
+  ]
+}

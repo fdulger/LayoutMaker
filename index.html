@@ -7,41 +7,117 @@
     <script src="lib/jquery-ui-1.12.1/external/jquery/jquery.js"></script>
     <script src="lib/jquery-ui-1.12.1/jquery-ui.js"></script>
     <style>
-        #draggable { width: 150px; height: 150px; }
-        .toolBarButton {
-            width: 150px;
-            padding: 10px;
-            display: inline;
+        .selectedAction {
+            background-color: #4CAFFF;
+        }
+        .layoutSlot {
+            width: 100px;
+            height: 100px;
+            border: 3px solid black;
+            position: absolute;
+            top: 100px;
+            left: 100px;
+        }
+        .selected {
+            border: 3px solid orange;
         }
     </style>
 </head>
 <body>
-<div id="toolBar" style="width: 100px;">
-    <button class="toolBarButton">+ New Slot</button>
-    <button class="toolBarButton">- Delete</button>
-    <button class="toolBarButton">- Move To Back</button>
-    <button class="toolBarButton">- Bring To Front</button>
-</div>
-<div id="editorArea" style="width: 800px; height: 500px;">
-    <div id="notdraggable" class="ui-widget-content" style="width: 100%;height: 100%;border: 3px solid black;">
-        <div id="draggable" class="ui-widget-content" style="width: 100px;height: 100px;border: 3px solid black;"></div>
-    </div>
-</div>
+<table style="width: 900px">
+    <tr>
+        <td colspan="2">
+            Select Layout:
+            <select>
+                <option value="full_layout">Full Layout</option>
+                <option value="empty_layout">Empty Layout</option>
+                <option value="pap_layout">PAP Layout</option>
+                <option value="pip_layout">PIP Layout</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <button>+ New Slot</button>
+            <button class="perSlot" disabled="true">- Delete</button>
+            <button class="perSlot" disabled="true" onclick="moveLayoutSlot(this)">- Move</button>
+            <button class="perSlot" disabled="true" onclick="resizeLayoutSlot(this)">- Resize</button>
+            <button class="perSlot" disabled="true">- Move To Back</button>
+            <button class="perSlot" disabled="true">- Bring To Front</button>
+            <button class="perSlot" disabled="true">| Split Vertically</button>
+            <button class="perSlot" disabled="true">-- Split Horizontally</button>
+        </td>
+        <td>
+            <div id="editorArea" class="ui-widget-content" style="position:relative;width: 800px; height: 500px;">
+                <div class="layoutSlot" style="top: 100px;left: 100px;"></div>
+                <div class="layoutSlot" style="top: 200px; left: 200px;"></div>
+                <div class="layoutSlot" style="top: 100px; left: 400px;"></div>
+            </div>
+        </td>
+    </tr>
+</table>
 </body>
 <script>
-    $( function() {
-        $( "#draggable" ).draggable(
+    $(".layoutSlot").click(function() {
+        if(!$(this).hasClass("selected")) {
+            unselect($(".selected"))
+            $(this).addClass("selected")
+        }
+        $(".perSlot").prop('disabled', false)
+    })
+    function moveLayoutSlot(button) {
+        $(".selectedAction").removeClass("selectedAction")
+        $(button).addClass("selectedAction")
+        disableResize($(".selected"))
+        console.log("enabling move")
+        $(".selected").empty()
+        $(".selected").append($('<img />', {
+            src: 'assets/move.png'
+        }))
+        $(".selected").draggable(
             {
-                containment: "#notdraggable"
+                disabled: false,
+                snap: "#editorArea",
+                containment: "#editorArea"
             }
-        );
-        $( "#draggable" ).resizable(
+        )
+    }
+    function resizeLayoutSlot(button) {
+        $(".selectedAction").removeClass("selectedAction")
+        $(button).addClass("selectedAction")
+        disableMove($(".selected"))
+        console.log("enabling resize")
+        $(".selected").empty()
+        $(".selected").append($('<img />', {
+            src: 'assets/resize.png',
+            css: 'margin: 0 auto;'
+        }))
+        $(".selected").resizable(
             {
-                containment: "#notdraggable",
+                handles: "all",
+                disabled: false,
+                containment: "#editorArea",
                 minHeight: 100,
                 minWidth: 100
             }
-        );
-    } );
+        )
+    }
+    function unselect(slot) {
+        slot.removeClass("selected")
+        $(".selectedAction").removeClass("selectedAction")
+        $(slot).empty()
+        disableMove(slot)
+        disableResize(slot)
+    }
+    function disableMove(slot) {
+        try {
+            slot.draggable("disable")
+        } catch (e) { }
+    }
+    function disableResize(slot) {
+        try {
+            slot.resizable("disable")
+        } catch (e) { }
+    }
 </script>
 </html>

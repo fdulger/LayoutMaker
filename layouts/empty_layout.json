@@ -1,0 +1,6 @@
+{
+  "id": "empty_layout",
+  "name": "empty layout",
+  "background": "#000000",
+  "layoutTemplateSlots": []
+}
