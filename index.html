@@ -18,106 +18,136 @@
             top: 100px;
             left: 100px;
         }
-        .selected {
+        .selectedSlot {
             border: 3px solid orange;
+        }
+        .centeredIcon {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-right: -50%;
+            transform: translate(-50%, -50%);
+        }
+        button {
+            width: 150px;
         }
     </style>
 </head>
 <body>
-<table style="width: 900px">
-    <tr>
-        <td colspan="2">
-            Select Layout:
-            <select>
-                <option value="full_layout">Full Layout</option>
-                <option value="empty_layout">Empty Layout</option>
-                <option value="pap_layout">PAP Layout</option>
-                <option value="pip_layout">PIP Layout</option>
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <button>+ New Slot</button>
-            <button class="perSlot" disabled="true">- Delete</button>
-            <button class="perSlot" disabled="true" onclick="moveLayoutSlot(this)">- Move</button>
-            <button class="perSlot" disabled="true" onclick="resizeLayoutSlot(this)">- Resize</button>
-            <button class="perSlot" disabled="true">- Move To Back</button>
-            <button class="perSlot" disabled="true">- Bring To Front</button>
-            <button class="perSlot" disabled="true">| Split Vertically</button>
-            <button class="perSlot" disabled="true">-- Split Horizontally</button>
-        </td>
-        <td>
-            <div id="editorArea" class="ui-widget-content" style="position:relative;width: 800px; height: 500px;">
-                <div class="layoutSlot" style="top: 100px;left: 100px;"></div>
-                <div class="layoutSlot" style="top: 200px; left: 200px;"></div>
-                <div class="layoutSlot" style="top: 100px; left: 400px;"></div>
-            </div>
-        </td>
-    </tr>
-</table>
+    <button>New Slot</button>
+    <button type="button" class="perSlot" disabled>Delete</button>
+    <button type="button" class="perSlot" disabled id="enableMoving" onclick="enableMoving(this)">Move</button>
+    <button type="button" class="perSlot" disabled id="enableScaling" onclick="enableScaling(this)">Scale</button>
+    <button type="button" class="perSlot" disabled id="enableResizing" onclick="enableResizing(this)">Resize</button>
+    <br/>
+    <button type="button" class="perSlot" disabled>Move To Back</button>
+    <button type="button" class="perSlot" disabled>Bring To Front</button>
+    <button type="button" class="perSlot" disabled>Split Vertically</button>
+    <button type="button" class="perSlot" disabled>Split Horizontally</button>
+    <button type="button" class="perSlot" disabled>...</button>
+
+    <div id="editorArea" class="ui-widget-content" style="position:relative;width: 800px; height: 500px;">
+        <div class="layoutSlot" style="top: 100px;left: 100px;"></div>
+        <div class="layoutSlot" style="top: 200px; left: 200px;"></div>
+        <div class="layoutSlot" style="top: 100px; left: 400px;"></div>
+    </div>
 </body>
 <script>
+
+    var selectedAction = 'NONE'
+
     $(".layoutSlot").click(function() {
-        if(!$(this).hasClass("selected")) {
-            unselect($(".selected"))
-            $(this).addClass("selected")
+        if (!$(this).hasClass("selectedSlot")) {
+            clearSlotSelection()
+            $(this).addClass("selectedSlot")
         }
-        $(".perSlot").prop('disabled', false)
+        $(".perSlot").removeProp('disabled')
+        if(selectedAction == 'MOVE') {
+            enableMoving()
+        } else if(selectedAction == 'RESIZE') {
+            enableResizing()
+        } else if(selectedAction == 'SCALE') {
+            enableScaling()
+        }
     })
-    function moveLayoutSlot(button) {
-        $(".selectedAction").removeClass("selectedAction")
-        $(button).addClass("selectedAction")
-        disableResize($(".selected"))
-        console.log("enabling move")
-        $(".selected").empty()
-        $(".selected").append($('<img />', {
-            src: 'assets/move.png'
-        }))
-        $(".selected").draggable(
+    function enableMoving(button) {
+        clearActionSelection(button)
+        selectedAction = 'MOVE'
+        if(button != undefined) $(button).addClass("selectedAction")
+        setIcon('move.png')
+        $(".selectedSlot").draggable(
             {
                 disabled: false,
-                snap: "#editorArea",
+                snap: "#editorArea,.layoutSlot",
                 containment: "#editorArea"
             }
         )
     }
-    function resizeLayoutSlot(button) {
-        $(".selectedAction").removeClass("selectedAction")
-        $(button).addClass("selectedAction")
-        disableMove($(".selected"))
-        console.log("enabling resize")
-        $(".selected").empty()
-        $(".selected").append($('<img />', {
-            src: 'assets/resize.png',
-            css: 'margin: 0 auto;'
-        }))
-        $(".selected").resizable(
+    function enableResizing(button) {
+        clearActionSelection(button)
+        selectedAction = 'RESIZE'
+        if(button != undefined) $(button).addClass("selectedAction")
+        setIcon('resize.png')
+        $(".selectedSlot").resizable(
             {
                 handles: "all",
                 disabled: false,
                 containment: "#editorArea",
                 minHeight: 100,
-                minWidth: 100
+                minWidth: 100,
+                snap: "#editorArea,.layoutSlot",
+                aspectRatio: false,
+                autoHide: true
             }
         )
     }
-    function unselect(slot) {
-        slot.removeClass("selected")
-        $(".selectedAction").removeClass("selectedAction")
-        $(slot).empty()
-        disableMove(slot)
-        disableResize(slot)
+    function enableScaling(button) {
+        clearActionSelection(button)
+        selectedAction = 'SCALE'
+        if(button != undefined) $(button).addClass("selectedAction")
+        setIcon('scale.png')
+        $(".selectedSlot").resizable(
+            {
+                handles: "all",
+                disabled: false,
+                containment: "#editorArea",
+                minHeight: 100,
+                minWidth: 100,
+                snap: "#editorArea,.layoutSlot",
+                aspectRatio: true,
+                autoHide: true
+            }
+        )
     }
     function disableMove(slot) {
         try {
-            slot.draggable("disable")
+            slot.draggable("destroy")
         } catch (e) { }
     }
     function disableResize(slot) {
         try {
-            slot.resizable("disable")
+            slot.resizable("destroy")
         } catch (e) { }
+    }
+    function disableScale(slot) {
+        disableResize(slot)
+    }
+    function clearSlotSelection() {
+        $(".selectedSlot").empty()
+        $(".selectedSlot").removeClass("selectedSlot")
+    }
+    function clearActionSelection(button) {
+        $(".selectedSlot").empty()
+        disableMove($(".selectedSlot"))
+        disableResize($(".selectedSlot"))
+        if(button != undefined) $(".selectedAction").removeClass("selectedAction")
+    }
+    function setIcon(icon) {
+        $(".selectedSlot").append($('<img />', {
+            src: 'assets/' + icon,
+            class: 'centeredIcon'
+        }))
     }
 </script>
 </html>
