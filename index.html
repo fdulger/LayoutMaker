@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <button>New Slot</button>
+    <button type="button" disabled>New Slot</button>
     <button type="button" class="perSlot" disabled>Delete</button>
     <button type="button" class="perSlot" disabled>Move To Back</button>
     <button type="button" class="perSlot" disabled>Bring To Front</button>
@@ -22,6 +22,7 @@
     <button type="button" class="perSlot" disabled>Split Horizontally</button>
     <button type="button" class="perSlot" disabled>Extend Vertically</button>
     <button type="button" class="perSlot" disabled>Extend Horizontally</button>
+    <button type="button" class="perSlot" onclick="exportLayout()">Export</button>
     <br/>
     <br/>
 
@@ -29,42 +30,113 @@
     </div>
 </body>
 <script>
-    function draw(layout) {
+
+    let loadedLayout = undefined
+
+    function exportLayout() {
+        console.log(JSON.stringify(loadedLayout))
+        var oMyBlob = new Blob([JSON.stringify(loadedLayout, null, 4)], {type : 'application/json'});
+        window.open(URL.createObjectURL(oMyBlob));
+    }
+
+    function loadLayout(layout) {
         $.ajax({
             url: 'layouts/' + layout + '.json',
             context: $("#editorArea")
         })
         .done(function (layout) {
-            $(this).html(
-                layout.layoutTemplateSlots.map(slot => {
-                    const top = slot.y * 100,
-                        left = slot.x * 100,
-                        width = slot.width * 100,
-                        height = slot.height * 100;
-                    return $('<div />', {
-                        style: `border: 3px solid black;position: absolute;top: ${top}%;left: ${left}%; width: ${width}%; height: ${height}%;`,
-                        class: 'layoutSlot'
-                    }).draggable(
-                        {
-                            disabled: false,
-                            snap: "#editorArea,.layoutSlot",
-                            containment: "#editorArea"
-                        }
-                    ).resizable(
-                        {
-                            handles: "all",
-                            disabled: false,
-                            containment: "#editorArea",
-                            minHeight: 100,
-                            minWidth: 100,
-                            aspectRatio: false,
-                            autoHide: true
-                        }
-                    )
-                })
-            );
+            loadedLayout = layout
+            draw(loadedLayout, this)
         });
     }
-    draw('pap_layout')
+
+    function draw(layout, context) {
+        $(context).html(
+            layout.layoutTemplateSlots.map(slotJson => {
+                const slot = htmlSlot(slotJson)
+                return $('<div />', {
+                    style: `
+                        border: 5px solid ${getRandomColor()};
+                        background-color: ${getRandomColor()};
+                        position: absolute;
+                        top: ${slot.top}%;
+                        left: ${slot.left}%;
+                        width: ${slot.width}%;
+                        height: ${slot.height}%;
+                        z-index: ${slot.zOrder}
+                    `,
+                    class: 'layoutSlot'
+                }).draggable(
+                    {
+                        disabled: false,
+                        snap: "#editorArea,.layoutSlot",
+                        containment: "parent",
+                        stop: function(event, ui) {
+                            move(slot.id, ui.position)
+                        }
+                    }
+                ).resizable(
+                    {
+                        handles: "all",
+                        disabled: false,
+                        containment: "parent",
+                        minHeight: 100,
+                        minWidth: 100,
+                        aspectRatio: false,
+                        autoHide: true,
+                        stop: function(event, ui) {
+                            resize(slot.id, ui.position, ui.size)
+                        }
+                    }
+                )
+            })
+        );
+    }
+
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    function htmlSlot(jsonSlot) {
+        return {
+            id: jsonSlot.id,
+            top: jsonSlot.y * 100,
+            left: jsonSlot.x * 100,
+            width: jsonSlot.width * 100,
+            height: jsonSlot.height * 100,
+            zOrder: jsonSlot.zOrder,
+        }
+    }
+
+    function toRelative(x, y) {
+        return {
+            x: Math.round(Math.max(x / 800, 0) * 1e2) / 1e2,
+            y: Math.round(Math.max(y / 800, 0) * 1e2) / 1e2,
+        }
+    }
+
+    function move(slotId, newPosition) {
+        const slot = loadedLayout.layoutTemplateSlots.find(slot => slot.id == slotId)
+        const relative = toRelative(newPosition.left, newPosition.top)
+        slot.x = relative.x
+        slot.y = relative.y
+    }
+
+    function resize(slotId, newPosition, newSize) {
+        const slot = loadedLayout.layoutTemplateSlots.find(slot => slot.id == slotId)
+        const relativePosition = toRelative(newPosition.left, newPosition.top)
+        const relativeSize = toRelative(newSize.width, newSize.height)
+        slot.x = relativePosition.x
+        slot.y = relativePosition.y
+        slot.width = relativeSize.x
+        slot.height = relativeSize.y
+    }
+
+    loadLayout('pip_layout')
 </script>
 </html>
