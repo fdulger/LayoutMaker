@@ -34,9 +34,9 @@
     let loadedLayout = undefined
 
     function exportLayout() {
-        console.log(JSON.stringify(loadedLayout))
-        var oMyBlob = new Blob([JSON.stringify(loadedLayout, null, 4)], {type : 'application/json'});
-        window.open(URL.createObjectURL(oMyBlob));
+        const layoutJson = JSON.stringify(loadedLayout, null, 4)
+        const layoutBlob = new Blob([layoutJson], {type: 'application/json'})
+        window.open(URL.createObjectURL(layoutBlob))
     }
 
     function loadLayout(layout) {
@@ -47,7 +47,7 @@
         .done(function (layout) {
             loadedLayout = layout
             draw(loadedLayout, this)
-        });
+        })
     }
 
     function draw(layout, context) {
@@ -56,7 +56,7 @@
                 const slot = htmlSlot(slotJson)
                 return $('<div />', {
                     style: `
-                        border: 5px solid ${getRandomColor()};
+                        border: 5px solid black;
                         background-color: ${getRandomColor()};
                         position: absolute;
                         top: ${slot.top}%;
@@ -66,7 +66,14 @@
                         z-index: ${slot.zOrder}
                     `,
                     class: 'layoutSlot'
-                }).draggable(
+                })
+                .bind('mousedown', function() {
+                    $(this).css("border", "5px dotted red")
+                })
+                .bind('mouseup', function() {
+                    $(this).css("border", "5px solid black")
+                })
+                .draggable(
                     {
                         disabled: false,
                         snap: "#editorArea,.layoutSlot",
@@ -90,16 +97,16 @@
                     }
                 )
             })
-        );
+        )
     }
 
     function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
+        const letters = '0123456789ABCDEF'
+        let color = '#'
         for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
+            color += letters[Math.floor(Math.random() * 16)]
         }
-        return color;
+        return color
     }
 
     function htmlSlot(jsonSlot) {
