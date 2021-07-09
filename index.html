@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <button type="button" disabled>New Slot</button>
+    <button type="button" onclick="newSlot()">New Slot</button>
     <button type="button" onclick="deleteSlot()">Delete</button>
     <button type="button" onclick="moveToBack()">Move To Back</button>
     <button type="button" onclick="bringToFront()">Bring To Front</button>
@@ -28,7 +28,6 @@
     </div>
 </body>
 <script>
-
     let loadedLayout = undefined
     let selectedSlot = undefined
 
@@ -136,6 +135,7 @@
     function deleteSlot() {
         if (selectedSlot != undefined) {
             loadedLayout.layoutTemplateSlots = loadedLayout.layoutTemplateSlots.filter(slot => slot.id != selectedSlot)
+            normalize()
             draw(loadedLayout, $("#editorArea"))
         }
     }
@@ -161,6 +161,27 @@
             const max = Math.max(...loadedLayout.layoutTemplateSlots.map(slot => slot.zOrder))
             const slot = loadedLayout.layoutTemplateSlots.find(slot => slot.id == selectedSlot)
             slot.zOrder = max + 1
+            draw(loadedLayout, $("#editorArea"))
+        }
+    }
+
+    function newSlot() {
+        if(loadedLayout.layoutTemplateSlots.length == 8) {
+            alert("Too many slots")
+        } else {
+            const max = Math.max(...loadedLayout.layoutTemplateSlots.map(slot => slotIds[slot.id]))
+            const newSlot = {
+                id: slotIdsArr[max + 1],
+                x: 0.25,
+                y: 0.25,
+                width: 0.25,
+                height: 0.25,
+                zOrder: 1,
+                gravity: "CENTER_MIDDLE",
+                mirrorVertically: false,
+                mirrorHorizontally: false,
+            }
+            loadedLayout.layoutTemplateSlots.push(newSlot)
             draw(loadedLayout, $("#editorArea"))
         }
     }
@@ -196,6 +217,12 @@
                 loadedLayout.layoutTemplateSlots.push(newSlot)
                 draw(loadedLayout, $("#editorArea"))
             }
+        }
+    }
+
+    function normalize() {
+        for(let i = 0; i < loadedLayout.layoutTemplateSlots.length; i++) {
+            loadedLayout.layoutTemplateSlots[i].id = slotIdsArr[i + 1]
         }
     }
 
