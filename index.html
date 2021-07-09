@@ -14,15 +14,13 @@
 </head>
 <body>
     <button type="button" disabled>New Slot</button>
-    <button type="button" class="perSlot" disabled>Delete</button>
-    <button type="button" class="perSlot" disabled>Move To Back</button>
-    <button type="button" class="perSlot" disabled>Bring To Front</button>
+    <button type="button" onclick="deleteSlot()">Delete</button>
+    <button type="button" onclick="moveToBack()">Move To Back</button>
+    <button type="button" onclick="bringToFront()">Bring To Front</button>
     <br/>
-    <button type="button" class="perSlot" disabled>Split Vertically</button>
-    <button type="button" class="perSlot" disabled>Split Horizontally</button>
-    <button type="button" class="perSlot" disabled>Extend Vertically</button>
-    <button type="button" class="perSlot" disabled>Extend Horizontally</button>
-    <button type="button" class="perSlot" onclick="exportLayout()">Export</button>
+    <button type="button" onclick="splitVertically()">Split Vertically</button>
+    <button type="button" onclick="splitHorizontally()">Split Horizontally</button>
+    <button type="button" onclick="exportLayout()">Export</button>
     <br/>
     <br/>
 
@@ -32,6 +30,7 @@
 <script>
 
     let loadedLayout = undefined
+    let selectedSlot = undefined
 
     function exportLayout() {
         const layoutJson = JSON.stringify(loadedLayout, null, 4)
@@ -57,7 +56,7 @@
                 return $('<div />', {
                     style: `
                         border: 5px solid black;
-                        background-color: ${getRandomColor()};
+                        background-color: ${colors[slot.id]};
                         position: absolute;
                         top: ${slot.top}%;
                         left: ${slot.left}%;
@@ -68,10 +67,9 @@
                     class: 'layoutSlot'
                 })
                 .bind('mousedown', function() {
-                    $(this).css("border", "5px dotted red")
-                })
-                .bind('mouseup', function() {
-                    $(this).css("border", "5px solid black")
+                    selectedSlot = slot.id
+                    $(".layoutSlot").css("border", "5px solid black")
+                    $(this).css("border", "5px dotted blue")
                 })
                 .draggable(
                     {
@@ -100,15 +98,6 @@
         )
     }
 
-    function getRandomColor() {
-        const letters = '0123456789ABCDEF'
-        let color = '#'
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)]
-        }
-        return color
-    }
-
     function htmlSlot(jsonSlot) {
         return {
             id: jsonSlot.id,
@@ -123,7 +112,7 @@
     function toRelative(x, y) {
         return {
             x: Math.round(Math.max(x / 800, 0) * 1e2) / 1e2,
-            y: Math.round(Math.max(y / 800, 0) * 1e2) / 1e2,
+            y: Math.round(Math.max(y / 500, 0) * 1e2) / 1e2,
         }
     }
 
@@ -144,6 +133,106 @@
         slot.height = relativeSize.y
     }
 
+    function deleteSlot() {
+        if (selectedSlot != undefined) {
+            loadedLayout.layoutTemplateSlots = loadedLayout.layoutTemplateSlots.filter(slot => slot.id != selectedSlot)
+            draw(loadedLayout, $("#editorArea"))
+        }
+    }
+
+    function moveToBack() {
+        if (selectedSlot != undefined) {
+            const min = Math.min(...loadedLayout.layoutTemplateSlots.map(slot => slot.zOrder))
+            const slot = loadedLayout.layoutTemplateSlots.find(slot => slot.id == selectedSlot)
+            if(min == 1) {
+                loadedLayout.layoutTemplateSlots
+                    .filter(slot => slot.id != selectedSlot)
+                    .forEach(slot => slot.zOrder = slot.zOrder + 1)
+                slot.zOrder = 1
+            } else {
+                slot.zOrder = min - 1
+            }
+            draw(loadedLayout, $("#editorArea"))
+        }
+    }
+
+    function bringToFront() {
+        if (selectedSlot != undefined) {
+            const max = Math.max(...loadedLayout.layoutTemplateSlots.map(slot => slot.zOrder))
+            const slot = loadedLayout.layoutTemplateSlots.find(slot => slot.id == selectedSlot)
+            slot.zOrder = max + 1
+            draw(loadedLayout, $("#editorArea"))
+        }
+    }
+
+    function splitVertically() {
+        if (selectedSlot != undefined) {
+            if(loadedLayout.layoutTemplateSlots.length == 8) {
+                alert("Too many slots")
+            } else {
+                const max = Math.max(...loadedLayout.layoutTemplateSlots.map(slot => slotIds[slot.id]))
+                const slot = loadedLayout.layoutTemplateSlots.find(slot => slot.id == selectedSlot)
+                slot.width = slot.width / 2
+                const newSlot = Object.assign({}, slot)
+                newSlot.id = slotIdsArr[max + 1]
+                newSlot.x = slot.x + slot.width
+                loadedLayout.layoutTemplateSlots.push(newSlot)
+                draw(loadedLayout, $("#editorArea"))
+            }
+        }
+    }
+
+    function splitHorizontally() {
+        if (selectedSlot != undefined) {
+            if(loadedLayout.layoutTemplateSlots.length == 8) {
+                alert("Too many slots")
+            } else {
+                const max = Math.max(...loadedLayout.layoutTemplateSlots.map(slot => slotIds[slot.id]))
+                const slot = loadedLayout.layoutTemplateSlots.find(slot => slot.id == selectedSlot)
+                slot.height = slot.height / 2
+                const newSlot = Object.assign({}, slot)
+                newSlot.id = slotIdsArr[max + 1]
+                newSlot.y = slot.y + slot.height
+                loadedLayout.layoutTemplateSlots.push(newSlot)
+                draw(loadedLayout, $("#editorArea"))
+            }
+        }
+    }
+
     loadLayout('pip_layout')
+
+    const colors = {
+        one:  "#F217A4",
+        two:  "#194384",
+        three:  "#8399F5",
+        four:  "#37025A",
+        five:  "#C18052",
+        six:  "#5E2569",
+        seven:  "#0E4EDF",
+        eight:  " #E905BB",
+    }
+
+    const slotIds = {
+        one: 1,
+        two: 2,
+        three: 3,
+        four: 4,
+        five: 5,
+        six: 6,
+        seven: 7,
+        eight: 8
+    }
+
+    const slotIdsArr = [
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight"
+    ]
 </script>
 </html>
